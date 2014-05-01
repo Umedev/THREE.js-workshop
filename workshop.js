@@ -1,4 +1,4 @@
-var camera, scene, renderer, analyser, frequencyData, audio;
+var camera, scene, renderer, analyser, audioData, audio;
 
 window.onload = function() {
 	initAudio();
@@ -20,8 +20,27 @@ function initAudio() {
 	// we have to connect the MediaElementSource with the analyser 
 	audioSrc.connect(analyser);
 	analyser.connect(ctx.destination);
-	// frequencyBinCount tells you how many values you'll receive from the analyser
-	frequencyData = new Uint8Array(analyser.frequencyBinCount);
+
+	// we only need one value at this point, the minimum size allowed for fftSize is 32
+	analyser.fftSize = 32;
+	analyser.smoothingTimeConstant = 0.1;
+
+	// the amplitude of the audio will be saved into this variable each frame
+	audioData = new Uint8Array(analyser.frequencyBinCount);
+}
+
+function getAverageFrequency() {
+
+	
+	analyser.getByteFrequencyData(audioData);
+
+	//get average level
+	var sum = 0;
+	for(var j = 0; j < audioData.length; ++j) {
+		sum += audioData[j];
+	}
+
+	return (sum / audioData.length) / 256;
 }
 
 function initRenderer() {
@@ -30,7 +49,7 @@ function initRenderer() {
 
 	// create camera
 	camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
-	camera.position.set(2, 0, 5);
+	camera.position.set(10, 2, 5);
 	camera.up = new THREE.Vector3(0,1,0);
 	camera.lookAt(new THREE.Vector3(0,0,0));
 
@@ -64,10 +83,10 @@ function animate() {
 
 function render() {
 	if (!audio.paused) {
-		// update data in frequencyData
-		analyser.getByteFrequencyData(frequencyData);
 
-		// TODO update cube transformations
+		// animate cube using audio data
+		cube.scale.y = getAverageFrequency();
+		cube.position.y = cube.scale.y / 2;
 	}
 
 	renderer.render(scene, camera);
