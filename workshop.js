@@ -13,12 +13,13 @@ function initAudio() {
 	} catch(e) {
 		ctx = new webkitAudioContext();
 	}
-	
+
+	analyser = ctx.createAnalyser();
 	audio = document.getElementsByTagName('audio').item(0);
 	var audioSrc = ctx.createMediaElementSource(audio);
-	analyser = ctx.createAnalyser();
 	// we have to connect the MediaElementSource with the analyser 
 	audioSrc.connect(analyser);
+	analyser.connect(ctx.destination);
 	// frequencyBinCount tells you how many values you'll receive from the analyser
 	frequencyData = new Uint8Array(analyser.frequencyBinCount);
 }
