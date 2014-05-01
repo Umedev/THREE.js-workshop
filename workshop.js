@@ -9,8 +9,9 @@ function init() {
 
 	// create camera
 	camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
-	camera.position.set(0, 0, 0);
-	camera.target = new THREE.Vector3(0, 0, -1);
+	camera.position.set(2, 0, 5);
+	camera.up = new THREE.Vector3(0,1,0);
+	camera.lookAt(new THREE.Vector3(0,0,0));
 
 	// create scene
 	scene = new THREE.Scene();
@@ -19,9 +20,7 @@ function init() {
 	geometry = new THREE.CubeGeometry(1, 1, 1);
 	material = new THREE.MeshBasicMaterial({color : '#f00'});
 	cube = new THREE.Mesh(geometry, material);
-	cube.position.x = 0;
-	cube.position.y = 0;
-	cube.position.z = -5;
+	cube.position.set(0,0,0);
 	scene.add(cube);
 
 	// create light
