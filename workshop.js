@@ -1,9 +1,29 @@
-var camera, scene, renderer;
+var camera, scene, renderer, analyser, frequencyData, audio;
 
-init();
-animate();
+window.onload = function() {
+	initAudio();
+	initRenderer();
+	animate();
+};
 
-function init() {
+function initAudio() {
+	var ctx;
+	try {
+		ctx = new AudioContext();
+	} catch(e) {
+		ctx = new webkitAudioContext();
+	}
+	
+	audio = document.getElementsByTagName('audio').item(0);
+	var audioSrc = ctx.createMediaElementSource(audio);
+	analyser = ctx.createAnalyser();
+	// we have to connect the MediaElementSource with the analyser 
+	audioSrc.connect(analyser);
+	// frequencyBinCount tells you how many values you'll receive from the analyser
+	frequencyData = new Uint8Array(analyser.frequencyBinCount);
+}
+
+function initRenderer() {
 	var container = document.createElement( 'div' );
 	document.body.appendChild( container );
 
@@ -42,5 +62,12 @@ function animate() {
 }
 
 function render() {
+	if (!audio.paused) {
+		// update data in frequencyData
+		analyser.getByteFrequencyData(frequencyData);
+
+		// TODO update cube transformations
+	}
+
 	renderer.render(scene, camera);
 }
