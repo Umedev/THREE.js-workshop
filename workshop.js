@@ -3,7 +3,7 @@ var camera, scene, renderer, analyser, audioData, averages, audio, cubes, segmen
 // let this be a power of 2
 var SEGMENT_COUNT = 16;
 
-var TIME_FRAME = 256;
+var TIME_FRAME = 200;
 
 window.onload = function() {
 	initAudio();
@@ -76,12 +76,13 @@ function initRenderer() {
 
 	// create camera
 	camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
-	camera.position.set(9, 2, 8);
+	camera.position.set(9, 5, 8);
 	camera.up = new THREE.Vector3(0,1,0);
-	camera.lookAt(new THREE.Vector3(9,0,0));
+	camera.lookAt(new THREE.Vector3(9,3,0));
 
 	// create scene
 	scene = new THREE.Scene();
+	scene.fog = new THREE.Fog( 0x333333, 1, 50);
 
 	//create a floor
 	var planeGeometry = new THREE.PlaneGeometry(100,100)
@@ -102,39 +103,24 @@ function initRenderer() {
 			cubes[i][j] = new THREE.Mesh(cubeGeometry, cubeMaterial);
 
 			cubes[i][j].position.set(j*1.2,0.5,-0.2*i);
-			cubes[i][j].castShadow = true;
-			//cubes[i][j].receiveShadow = true;
 
 			scene.add(cubes[i][j]);
 		}
 	}
 	
 	// add some ambient light
-	scene.add(new THREE.AmbientLight(0x444444));
+	scene.add(new THREE.AmbientLight(0x222222));
 
 	// create light looking at the middle cube
 	var light = new THREE.DirectionalLight(0xffffff, 1);
 	light.position.set(16, 2, 10);
 	light.target.position = new THREE.Vector3(8,0,0)
-	light.shadowCameraNear = 1;
-	light.shadowCameraFar = 1000;
-	light.shadowCameraVisible = true
-	light.castShadow = true;
-	light.shadowDarkness = 0.5;
-	light.shadowMapWidth = 2048;
-	light.shadowMapHeight = 1024;
-	light.shadowCameraLeft = -10; // or whatever value works for the scale of your scene
-	light.shadowCameraRight = 10;
-	light.shadowCameraTop = 10;
-	light.shadowCameraBottom = -10;
 	scene.add(light);
 
 	// create renderer
 	renderer = new THREE.WebGLRenderer();
-	renderer.setClearColor(0xffffff);
+	renderer.setClearColor(0x333333);
 	renderer.setSize(window.innerWidth, window.innerHeight);
-	renderer.shadowMapEnabled = true;
-	renderer.shadowMapSoft = false;
 
 	// add canvas to dom
 	container.appendChild(renderer.domElement);
@@ -153,7 +139,7 @@ function render() {
 		
 		for (var i = 0; i < TIME_FRAME; i++) {
 			for (var j = 0; j < SEGMENT_COUNT; j++) {
-				cubes[i][j].scale.y = Math.max(0.1, averages[i][j]);
+				cubes[i][j].scale.y = Math.max(0.01, averages[i][j]*5);
 				cubes[i][j].position.y = cubes[i][j].scale.y / 2;
 			}
 		}
