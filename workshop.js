@@ -82,7 +82,7 @@ function initRenderer() {
 
 	// create scene
 	scene = new THREE.Scene();
-	scene.fog = new THREE.Fog( 0x333333, 1, 50);
+	scene.fog = new THREE.Fog( 0x333333, 1, 30);
 
 	//create a floor
 	var planeGeometry = new THREE.PlaneGeometry(100,100)
@@ -101,9 +101,7 @@ function initRenderer() {
 		cubes[i] = [];
 		for (var j = 0; j < SEGMENT_COUNT; j++) {
 			cubes[i][j] = new THREE.Mesh(cubeGeometry, cubeMaterial);
-
 			cubes[i][j].position.set(j*2,0.5,-0.2*i);
-
 			scene.add(cubes[i][j]);
 		}
 	}
@@ -113,7 +111,7 @@ function initRenderer() {
 
 	// create light looking at the middle cube
 	var light = new THREE.DirectionalLight(0xffffff, 1);
-	light.position.set(16, 2, 10);
+	light.position.set(8, 2, 3);
 	light.target.position = new THREE.Vector3(8,0,0)
 	scene.add(light);
 
