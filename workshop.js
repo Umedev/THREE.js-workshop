@@ -1,4 +1,9 @@
-var camera, scene, renderer, analyser, audioData, audio, cubes;
+var camera, scene, renderer, analyser, audioData, averages, audio, cubes, segmentLength;
+
+// let this be a power of 2
+var SEGMENT_COUNT = 8;
+
+var TIME_FRAME = 64;
 
 window.onload = function() {
 	initAudio();
@@ -21,30 +26,48 @@ function initAudio() {
 	audioSrc.connect(analyser);
 	analyser.connect(ctx.destination);
 
-	// we only need one value at this point, the minimum size allowed for fftSize is 32
-	analyser.fftSize = 32;
+	// the minimum size allowed for fftSize is 32
+	if(SEGMENT_COUNT > 32) {
+		analyser.fftSize = SEGMENT_COUNT;
+	} else {
+		analyser.fftSize = 32;
+	}
+
+	segmentLength = analyser.fftSize / (SEGMENT_COUNT * 2);
+	
 	analyser.smoothingTimeConstant = 0.1;
 
 	// the amplitude of the audio will be saved into this variable each frame
 	audioData = new Uint8Array(analyser.frequencyBinCount);
+	averages = [];
+	for (var i = 0; i < TIME_FRAME; i++) {
+		averages[i] = [];
+		for (var j = 0; j < SEGMENT_COUNT; j++) {
+			averages[i][j] = 0;
+		}
+	}
+	 
 }
 
-function getFrequencyAverages() {
+function updateFrequencyAverages() {
 
 	analyser.getByteFrequencyData(audioData);
 
+	var avg = [];
 
-	var averages = [];
-
-	for (var i = 0; i < 8; i++) {
-		averages[i] = 0;
-		for(var j = i*2; j < (i+1)*2; j++) {
-			averages[i] += audioData[j];
+	for (var i = 0; i < SEGMENT_COUNT; i++) {
+		avg[i] = 0;
+		for(var j = i*segmentLength; j < (i+1)*segmentLength; j++) {
+			avg[i] += audioData[j];
 		}
-		averages[i] = (averages[i] / 2) / 256;
+		avg[i] = (avg[i] / 2) / 256;
 	};
-	
-	return averages;
+
+	// add the current timeframes averages to the first position in the array
+	averages.splice(0, 0, avg);
+
+	// remove the last element in the array
+	averages.pop();
 }
 
 function initRenderer() {
@@ -60,16 +83,20 @@ function initRenderer() {
 	// create scene
 	scene = new THREE.Scene();
 
-	// create cube
-	var geometry = new THREE.CubeGeometry(1, 1, 1);
+	// create cubes
+	var geometry = new THREE.CubeGeometry(1, 1, 0.2);
 	var material = new THREE.MeshBasicMaterial({color : '#f00'});
 	cubes = [];
-	for (var i = 0; i < 8; i++) {
-		cubes[i] = new THREE.Mesh(geometry, material);
+	for (var i = 0; i < TIME_FRAME; i++) {
+		cubes[i] = [];
+		for (var j = 0; j < SEGMENT_COUNT; j++) {
+			cubes[i][j] = new THREE.Mesh(geometry, material);
 
-		cubes[i].position.set(i*2,0,0);
-		scene.add(cubes[i]);
-	};
+			cubes[i][j].position.set(j*2,0.5,-0.2*i);
+			scene.add(cubes[i][j]);
+		};
+	}
+	
 	
 
 	// create light
@@ -93,12 +120,16 @@ function animate() {
 function render() {
 	if (!audio.paused) {
 
+		updateFrequencyAverages();
 		// animate cubes using audio data
-		var averages = getFrequencyAverages();
-		for (var i = 0; i < cubes.length; i++) {
-			cubes[i].scale.y = Math.max(0.1, averages[i]);
-			cubes[i].position.y = cubes[i].scale.y / 2;
+		
+		for (var i = 0; i < TIME_FRAME; i++) {
+			for (var j = 0; j < SEGMENT_COUNT; j++) {
+				cubes[i][j].scale.y = Math.max(0.1, averages[i][j]);
+				cubes[i][j].position.y = cubes[i][j].scale.y / 2;
+			}
 		}
+		
 		
 	}
 
