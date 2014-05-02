@@ -1,4 +1,4 @@
-var camera, scene, renderer, analyser, audioData, audio;
+var camera, scene, renderer, analyser, audioData, audio, cubes;
 
 window.onload = function() {
 	initAudio();
@@ -29,18 +29,22 @@ function initAudio() {
 	audioData = new Uint8Array(analyser.frequencyBinCount);
 }
 
-function getAverageFrequency() {
+function getFrequencyAverages() {
 
-	
 	analyser.getByteFrequencyData(audioData);
 
-	//get average level
-	var sum = 0;
-	for(var j = 0; j < audioData.length; ++j) {
-		sum += audioData[j];
-	}
 
-	return (sum / audioData.length) / 256;
+	var averages = [];
+
+	for (var i = 0; i < 8; i++) {
+		averages[i] = 0;
+		for(var j = i*2; j < (i+1)*2; j++) {
+			averages[i] += audioData[j];
+		}
+		averages[i] = (averages[i] / 2) / 256;
+	};
+	
+	return averages;
 }
 
 function initRenderer() {
@@ -49,19 +53,24 @@ function initRenderer() {
 
 	// create camera
 	camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
-	camera.position.set(10, 2, 5);
+	camera.position.set(16, 4, 10);
 	camera.up = new THREE.Vector3(0,1,0);
-	camera.lookAt(new THREE.Vector3(0,0,0));
+	camera.lookAt(new THREE.Vector3(8,0,0));
 
 	// create scene
 	scene = new THREE.Scene();
 
 	// create cube
-	geometry = new THREE.CubeGeometry(1, 1, 1);
-	material = new THREE.MeshBasicMaterial({color : '#f00'});
-	cube = new THREE.Mesh(geometry, material);
-	cube.position.set(0,0,0);
-	scene.add(cube);
+	var geometry = new THREE.CubeGeometry(1, 1, 1);
+	var material = new THREE.MeshBasicMaterial({color : '#f00'});
+	cubes = [];
+	for (var i = 0; i < 8; i++) {
+		cubes[i] = new THREE.Mesh(geometry, material);
+
+		cubes[i].position.set(i*2,0,0);
+		scene.add(cubes[i]);
+	};
+	
 
 	// create light
 	var ambientLight = new THREE.AmbientLight(0x202020);
@@ -84,9 +93,13 @@ function animate() {
 function render() {
 	if (!audio.paused) {
 
-		// animate cube using audio data
-		cube.scale.y = getAverageFrequency();
-		cube.position.y = cube.scale.y / 2;
+		// animate cubes using audio data
+		var averages = getFrequencyAverages();
+		for (var i = 0; i < cubes.length; i++) {
+			cubes[i].scale.y = Math.max(0.1, averages[i]);
+			cubes[i].position.y = cubes[i].scale.y / 2;
+		}
+		
 	}
 
 	renderer.render(scene, camera);
