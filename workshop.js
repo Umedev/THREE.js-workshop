@@ -1,9 +1,9 @@
 var camera, scene, renderer, analyser, audioData, averages, audio, cubes, segmentLength;
 
 // let this be a power of 2
-var SEGMENT_COUNT = 8;
+var SEGMENT_COUNT = 16;
 
-var TIME_FRAME = 128;
+var TIME_FRAME = 256;
 
 window.onload = function() {
 	initAudio();
@@ -76,9 +76,9 @@ function initRenderer() {
 
 	// create camera
 	camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
-	camera.position.set(8, 4, 10);
+	camera.position.set(9, 2, 8);
 	camera.up = new THREE.Vector3(0,1,0);
-	camera.lookAt(new THREE.Vector3(8,0,0));
+	camera.lookAt(new THREE.Vector3(9,0,0));
 
 	// create scene
 	scene = new THREE.Scene();
@@ -101,7 +101,7 @@ function initRenderer() {
 		for (var j = 0; j < SEGMENT_COUNT; j++) {
 			cubes[i][j] = new THREE.Mesh(cubeGeometry, cubeMaterial);
 
-			cubes[i][j].position.set(j*2,0.5,-0.2*i);
+			cubes[i][j].position.set(j*1.2,0.5,-0.2*i);
 			cubes[i][j].castShadow = true;
 			//cubes[i][j].receiveShadow = true;
 
@@ -157,7 +157,6 @@ function render() {
 				cubes[i][j].position.y = cubes[i][j].scale.y / 2;
 			}
 		}
-		
 		
 	}
 
